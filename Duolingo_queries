@@ -1,0 +1,48 @@
+--This query was how I would start looking at certain groups to see the distribution of people within specific groups. This looks specifically for 
+--committed users are defined as very, extremely or moderately committed learners. This also looks specifically for users who indicated using other 
+--resources and are not currently using Dulingo Plus.
+--While the CTE in this case isn't necessary it makes it easier to do further exploration of this subgroup. 
+
+with resources as (SELECT distinct other_resources
+, duolingo_subscriber
+, primary_language_commitment
+, count(*) as count 
+from `ferrous-layout-331618.DuoLingo.UserData` 
+where other_resources is not null and regexp_contains(primary_language_commitment, 'very|extremely|moderately') 
+and survey_complete = 1
+and lower(duolingo_subscriber) like '%no%'
+group by 1,2,3
+order by 4 desc
+)
+
+select *
+from resources
+
+
+--This code is used to determine the respondents who identify as being immigrants or refugees. 
+--Here I'm also filtering out any fields that relate to language motivation that is null so it doesn't skew data. 
+--Similar to above, the cte isnt necessary here but makes further analysis easier. 
+
+with cte as (SELECT gender
+, age
+, primary_language_motivation_followup
+, count(*) as count FROM `ferrous-layout-331618.DuoLingo.UserData` 
+where primary_language_motivation is not null and primary_language_motivation_followup is not null 
+and regexp_contains(primary_language_motivation_followup, 'immigrant|refugee')  and survey_complete = 1
+group by 1,2,3
+order by 4 desc
+)
+
+select * from cte
+
+--This is a sample percentage calculation of specific mediums that learners are using. This specifically finds that percentage of people who are 
+--extremely, very or moderately committed to learning the language and use movies and not subscribed to duolingo. This is a fairly reuseable query and 
+--parts can be replaced to find the percentages for other resources or for other queries entirely. Once again other resources is set to not null to not 
+--skew data. 
+SELECT 
+(sum(case when lower(other_resources) like '%movies%'
+      and lower(duolingo_subscriber) like '%no%' 
+      and regexp_contains(primary_language_commitment, 'very|extremely|moderately') 
+      THEN 1 ELSE 0 END) / count(*))*100 as percentage
+from `ferrous-layout-331618.DuoLingo.UserData` 
+where survey_complete = 1 and other_resources is not null
