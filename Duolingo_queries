@@ -23,7 +23,7 @@ from resources
 --Here I'm also filtering out any fields that relate to language motivation that is null so it doesn't skew data. 
 --Similar to above, the cte isnt necessary here but makes further analysis easier. 
 
-with cte as (SELECT gender
+with newcomers as (SELECT gender
 , age
 , primary_language_motivation_followup
 , count(*) as count FROM `ferrous-layout-331618.DuoLingo.UserData` 
@@ -33,7 +33,7 @@ group by 1,2,3
 order by 4 desc
 )
 
-select * from cte
+select * from newcomers
 
 --This is a sample percentage calculation of specific mediums that learners are using. This specifically finds that percentage of people who are 
 --extremely, very or moderately committed to learning the language and use movies and not subscribed to duolingo. This is a fairly reuseable query and 
